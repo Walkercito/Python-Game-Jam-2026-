@@ -8,7 +8,7 @@ from core.gui import FONT_PATH
 from core.scene import SceneManager
 from core.scenes.main_menu import MainMenu
 
-CURSOR_PATH = Path("assets/gui/icons/HardArtcore/SimpleUIIcons/Icons/Filled/ic_cursor_fill.png")
+CURSOR_PATH = Path("assets/gui/icons/ic_cursor_fill.png")
 CURSOR_SIZE = 24
 
 

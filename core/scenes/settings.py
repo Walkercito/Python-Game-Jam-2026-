@@ -7,7 +7,7 @@ from core.config.game_settings import settings
 from core.gui import Button, Divider, Label, Panel, Slider, Toggle
 from core.scene import Scene, SceneManager
 
-ICON_DIR = Path("assets/gui/icons/HardArtcore/SimpleUIIcons/Icons/Filled")
+ICON_DIR = Path("assets/gui/icons")
 TAB_ICON_SIZE = 32
 TAB_NAMES = ["Screen", "Audio", "Gameplay", "Credits"]
 TAB_ICONS = [

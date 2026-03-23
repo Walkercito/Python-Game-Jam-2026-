@@ -4,9 +4,7 @@ from pathlib import Path
 
 import pygame
 
-SPRITESHEET_PATH = Path(
-    "assets/portal/PixelHolyEffectsPack01 v1_1/HolyShield/Spritesheet/HolyShield_spritesheet.png"
-)
+SPRITESHEET_PATH = Path("assets/portal/holy_shield.png")
 FRAME_SIZE = 64
 FRAME_COUNT = 11
 PORTAL_FPS = 10

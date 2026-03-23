@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pygame
 
-GUI_DIR = Path("assets/gui/kenney_fantasy-ui-borders/PNG/Double")
+GUI_DIR = Path("assets/gui/panels")
 FONT_PATH = Path("assets/font/BoldPixels.ttf")
 SLICE_MARGIN = 32
 
