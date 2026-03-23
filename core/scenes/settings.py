@@ -37,6 +37,10 @@ class Settings(Scene):
         self.sfx_slider = Slider(width=240, height=42, value=settings.sfx_volume, style=6)
         self.sfx_slider.on_change = self._on_sfx
 
+        self.fps_label = Label("Show FPS", size=24)
+        self.fps_toggle = Toggle(width=80, height=42, active=settings.show_fps, style=6)
+        self.fps_toggle.on_change = self._on_fps
+
         self.back_btn = Button("Back", width=240, height=58, font_size=24, variant="secondary")
         self.back_btn.callback = self._on_back
 
@@ -46,6 +50,7 @@ class Settings(Scene):
             self.res_right,
             self.music_slider,
             self.sfx_slider,
+            self.fps_toggle,
             self.back_btn,
         ]
 
@@ -56,10 +61,10 @@ class Settings(Scene):
         cy = sh // 2
 
         self.bg_panel = Panel(
-            620, 520, style=6, transparent=True, fill_color=(14, 7, 27), border_color=(80, 75, 65)
+            620, 590, style=6, transparent=True, fill_color=(14, 7, 27), border_color=(80, 75, 65)
         )
         self.bg_x = (sw - 620) // 2
-        self.bg_y = cy - 260
+        self.bg_y = cy - 295
 
         label_x = cx - 140
         control_x = cx + 120
@@ -69,7 +74,8 @@ class Settings(Scene):
         self.res_right.set_position(control_x + 80, self.bg_y + 235)
         self.music_slider.set_position(control_x, self.bg_y + 315)
         self.sfx_slider.set_position(control_x, self.bg_y + 395)
-        self.back_btn.set_position(cx, self.bg_y + 480)
+        self.fps_toggle.set_position(control_x, self.bg_y + 470)
+        self.back_btn.set_position(cx, self.bg_y + 550)
 
         self._label_x = label_x
         self._control_x = control_x
@@ -110,6 +116,9 @@ class Settings(Scene):
 
     def _on_sfx(self, value: float) -> None:
         settings.set_sfx_volume(value)
+
+    def _on_fps(self, active: bool) -> None:
+        settings.show_fps = active
 
     def _on_back(self) -> None:
         self.manager.pop()
@@ -157,5 +166,8 @@ class Settings(Scene):
 
         self.sfx_label.draw(surface, self._label_x, self.bg_y + 395)
         self.sfx_slider.draw(surface)
+
+        self.fps_label.draw(surface, self._label_x, self.bg_y + 470)
+        self.fps_toggle.draw(surface)
 
         self.back_btn.draw(surface)

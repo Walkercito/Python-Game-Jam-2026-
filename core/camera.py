@@ -74,6 +74,13 @@ class SplitScreen:
         self.split_angle = 0.0
         self._target_split = 0.0
 
+        # Cached surfaces — allocated once, reused every frame
+        self._surf1: pygame.Surface | None = None
+        self._surf2: pygame.Surface | None = None
+        self._mask: pygame.Surface | None = None
+        self._composite: pygame.Surface | None = None
+        self._cached_size: tuple[int, int] = (0, 0)
+
     def update(
         self,
         dt: float,
@@ -145,6 +152,17 @@ class SplitScreen:
         self.cam1.update(dt)
         self.cam2.update(dt)
 
+    def _get_surfaces(
+        self, sw: int, sh: int
+    ) -> tuple[pygame.Surface, pygame.Surface, pygame.Surface, pygame.Surface]:
+        if self._cached_size != (sw, sh):
+            self._surf1 = pygame.Surface((sw, sh))
+            self._surf2 = pygame.Surface((sw, sh))
+            self._mask = pygame.Surface((sw, sh), pygame.SRCALPHA)
+            self._composite = pygame.Surface((sw, sh), pygame.SRCALPHA)
+            self._cached_size = (sw, sh)
+        return self._surf1, self._surf2, self._mask, self._composite
+
     def shake_all(self, intensity: float = 4.0, duration: float = 0.12) -> None:
         self.shared_cam.shake(intensity, duration)
         self.cam1.shake(intensity, duration)
@@ -207,16 +225,31 @@ class SplitScreen:
         draw_fn: callable,
         rect1: pygame.Rect,
         rect2: pygame.Rect,
+        hud_fn: object = None,
     ) -> None:
         sw, sh = settings.screen_size
 
         if self.split_amount == 0.0:
             draw_fn(screen, self.shared_cam.offset, (sw, sh))
+            center = (sw // 2, sh // 2)
+            if hud_fn:
+                hud_fn(screen, 0, center)
+                hud_fn(screen, 1, center)
             return
 
-        # Render both views
-        surf1 = pygame.Surface((sw, sh))
-        surf2 = pygame.Surface((sw, sh))
+        # Compute HUD centers for each half based on split angle
+        sl_dx = math.cos(self.split_angle)
+        sl_dy = math.sin(self.split_angle)
+        p1_side = self._determine_p1_side(rect1, rect2)
+        # Normal pointing into P1's half
+        norm_x = -sl_dy * p1_side
+        norm_y = sl_dx * p1_side
+        shift = sw // 4
+        p1_center = (int(sw / 2 + norm_x * shift), int(sh / 2 + norm_y * shift))
+        p2_center = (int(sw / 2 - norm_x * shift), int(sh / 2 - norm_y * shift))
+
+        # Reuse cached surfaces
+        surf1, surf2, mask, composite = self._get_surfaces(sw, sh)
 
         off1 = self._blended_offset(self.cam1)
         off2 = self._blended_offset(self.cam2)
@@ -224,8 +257,10 @@ class SplitScreen:
         draw_fn(surf1, off1, (sw, sh))
         draw_fn(surf2, off2, (sw, sh))
 
-        # Determine which side P1 is on
-        p1_side = self._determine_p1_side(rect1, rect2)
+        # Per-player HUD on each surface before masking
+        if hud_fn:
+            hud_fn(surf1, 0, p1_center)
+            hud_fn(surf2, 1, p2_center)
 
         # Build polygon for P1's half
         p1_poly = self._build_half_polygon(sw, sh, p1_side)
@@ -233,25 +268,19 @@ class SplitScreen:
         # Composite: surf2 as background, surf1 masked to P1's half
         screen.blit(surf2, (0, 0))
 
-        mask = pygame.Surface((sw, sh), pygame.SRCALPHA)
+        # Build mask and apply to surf1 via cached composite surface
         mask.fill((0, 0, 0, 0))
         pygame.draw.polygon(mask, (255, 255, 255, 255), p1_poly)
 
-        masked = surf1.convert_alpha()
-        masked.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
-        screen.blit(masked, (0, 0))
+        composite.fill((0, 0, 0, 0))
+        composite.blit(surf1, (0, 0))
+        composite.blit(mask, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+        screen.blit(composite, (0, 0))
 
-        # Draw divider line
+        # Draw divider line directly on screen
         cx, cy = sw / 2, sh / 2
         diag = math.hypot(sw, sh)
-        sl_dx = math.cos(self.split_angle)
-        sl_dy = math.sin(self.split_angle)
         lp1 = (cx - sl_dx * diag, cy - sl_dy * diag)
         lp2 = (cx + sl_dx * diag, cy + sl_dy * diag)
-
         width = max(1, int(self.DIVIDER_WIDTH * self.split_amount))
-        alpha = int(255 * self.split_amount)
-        line_surf = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        color = (*self.DIVIDER_COLOR, alpha)
-        pygame.draw.line(line_surf, color, lp1, lp2, width)
-        screen.blit(line_surf, (0, 0))
+        pygame.draw.line(screen, self.DIVIDER_COLOR, lp1, lp2, width)

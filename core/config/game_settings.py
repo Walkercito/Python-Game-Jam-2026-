@@ -8,6 +8,7 @@ class GameSettings:
         self.is_fullscreen = False
         self.music_volume = 0.7
         self.sfx_volume = 0.8
+        self.show_fps = False
         self._dirty = False
 
     @property
