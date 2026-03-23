@@ -1,7 +1,7 @@
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 60
-TITLE = "Python Game Jam 2026"
+TITLE = "No name yet"
 
 # Map
 LAYER_PROPERTIES: dict[str, dict] = {

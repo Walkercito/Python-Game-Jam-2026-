@@ -9,35 +9,35 @@ class Settings(Scene):
     def __init__(self, manager: SceneManager) -> None:
         super().__init__(manager)
 
-        self.title = Label("Settings", size=32)
-        self.divider_top = Divider(scale=0.7, style=3, fade=True)
-        self.divider_bottom = Divider(scale=0.7, style=3, fade=True)
+        self.title = Label("Settings", size=42)
+        self.divider_top = Divider(scale=0.8, style=3, fade=True)
+        self.divider_bottom = Divider(scale=0.8, style=3, fade=True)
         self.divider_bottom.image = pygame.transform.flip(self.divider_bottom.image, True, False)
 
-        self.fullscreen_label = Label("Fullscreen", size=18)
-        self.fullscreen_toggle = Toggle(width=70, height=36, active=settings.is_fullscreen, style=6)
+        self.fullscreen_label = Label("Fullscreen", size=24)
+        self.fullscreen_toggle = Toggle(width=80, height=42, active=settings.is_fullscreen, style=6)
         self.fullscreen_toggle.on_change = self._on_fullscreen
 
         self.resolutions = [(1280, 720), (1920, 1080), (800, 600)]
         self.res_index = next(
             (i for i, r in enumerate(self.resolutions) if r == settings.screen_size), 0
         )
-        self.res_label = Label("Resolution", size=18)
-        self.res_value = Label(self._res_text(), size=16)
-        self.res_left = Button("<", width=36, height=36, font_size=16, style=6, hover_style=1)
+        self.res_label = Label("Resolution", size=24)
+        self.res_value = Label(self._res_text(), size=22)
+        self.res_left = Button("<", width=46, height=46, font_size=22, variant="secondary")
         self.res_left.callback = self._prev_res
-        self.res_right = Button(">", width=36, height=36, font_size=16, style=6, hover_style=1)
+        self.res_right = Button(">", width=46, height=46, font_size=22, variant="secondary")
         self.res_right.callback = self._next_res
 
-        self.music_label = Label("Music", size=18)
-        self.music_slider = Slider(width=200, height=36, value=settings.music_volume, style=6)
+        self.music_label = Label("Music", size=24)
+        self.music_slider = Slider(width=240, height=42, value=settings.music_volume, style=6)
         self.music_slider.on_change = self._on_music
 
-        self.sfx_label = Label("SFX", size=18)
-        self.sfx_slider = Slider(width=200, height=36, value=settings.sfx_volume, style=6)
+        self.sfx_label = Label("SFX", size=24)
+        self.sfx_slider = Slider(width=240, height=42, value=settings.sfx_volume, style=6)
         self.sfx_slider.on_change = self._on_sfx
 
-        self.back_btn = Button("Back", width=180, height=50, style=6, hover_style=1, font_size=22)
+        self.back_btn = Button("Back", width=240, height=58, font_size=24, variant="secondary")
         self.back_btn.callback = self._on_back
 
         self.widgets = [
@@ -55,19 +55,21 @@ class Settings(Scene):
         cx = sw // 2
         cy = sh // 2
 
-        self.bg_panel = Panel(560, 460, style=6, transparent=True)
-        self.bg_x = (sw - 560) // 2
-        self.bg_y = cy - 230
+        self.bg_panel = Panel(
+            620, 520, style=6, transparent=True, fill_color=(14, 7, 27), border_color=(80, 75, 65)
+        )
+        self.bg_x = (sw - 620) // 2
+        self.bg_y = cy - 260
 
-        label_x = cx - 120
-        control_x = cx + 100
+        label_x = cx - 140
+        control_x = cx + 120
 
-        self.fullscreen_toggle.set_position(control_x, self.bg_y + 140)
-        self.res_left.set_position(control_x - 70, self.bg_y + 200)
-        self.res_right.set_position(control_x + 70, self.bg_y + 200)
-        self.music_slider.set_position(control_x, self.bg_y + 270)
-        self.sfx_slider.set_position(control_x, self.bg_y + 340)
-        self.back_btn.set_position(cx, self.bg_y + 420)
+        self.fullscreen_toggle.set_position(control_x, self.bg_y + 160)
+        self.res_left.set_position(control_x - 80, self.bg_y + 235)
+        self.res_right.set_position(control_x + 80, self.bg_y + 235)
+        self.music_slider.set_position(control_x, self.bg_y + 315)
+        self.sfx_slider.set_position(control_x, self.bg_y + 395)
+        self.back_btn.set_position(cx, self.bg_y + 480)
 
         self._label_x = label_x
         self._control_x = control_x
@@ -112,6 +114,14 @@ class Settings(Scene):
     def _on_back(self) -> None:
         self.manager.pop()
 
+    def update(self, dt: float) -> None:
+        from core.scenes.network_gameplay import NetworkGameplay
+
+        for scene in self.manager.stack:
+            if isinstance(scene, NetworkGameplay):
+                scene.update(dt)
+                break
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self._on_back()
@@ -126,26 +136,26 @@ class Settings(Scene):
         surface.blit(overlay, (0, 0))
 
         cx = sw // 2
-        title_y = self.bg_y + 55
+        title_y = self.bg_y + 65
 
         self.bg_panel.draw(surface, self.bg_x, self.bg_y)
-        title_gap = self.title.rect.width // 2 + 80
+        title_gap = self.title.rect.width // 2 + 110
         self.divider_top.draw(surface, cx - title_gap, title_y)
         self.title.draw(surface, cx, title_y)
         self.divider_bottom.draw(surface, cx + title_gap, title_y)
 
-        self.fullscreen_label.draw(surface, self._label_x, self.bg_y + 140)
+        self.fullscreen_label.draw(surface, self._label_x, self.bg_y + 160)
         self.fullscreen_toggle.draw(surface)
 
-        self.res_label.draw(surface, self._label_x, self.bg_y + 200)
+        self.res_label.draw(surface, self._label_x, self.bg_y + 235)
         self.res_left.draw(surface)
-        self.res_value.draw(surface, self._control_x, self.bg_y + 200)
+        self.res_value.draw(surface, self._control_x, self.bg_y + 235)
         self.res_right.draw(surface)
 
-        self.music_label.draw(surface, self._label_x, self.bg_y + 270)
+        self.music_label.draw(surface, self._label_x, self.bg_y + 315)
         self.music_slider.draw(surface)
 
-        self.sfx_label.draw(surface, self._label_x, self.bg_y + 340)
+        self.sfx_label.draw(surface, self._label_x, self.bg_y + 395)
         self.sfx_slider.draw(surface)
 
         self.back_btn.draw(surface)

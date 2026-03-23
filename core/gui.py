@@ -132,23 +132,28 @@ class Divider:
 
 BUTTON_STYLES = {
     "primary": {
-        "fill": (35, 38, 48),
-        "border": (180, 185, 195),
-        "hover_fill": (220, 225, 235),
-        "hover_border": (255, 255, 255),
-        "hover_text": (30, 30, 40),
+        "fill": (210, 200, 180),
+        "border": (170, 160, 140),
+        "text": (35, 30, 25),
+        "hover_fill": (245, 240, 225),
+        "hover_border": (210, 200, 180),
+        "hover_text": (20, 18, 15),
     },
     "secondary": {
-        "fill": (30, 33, 42),
-        "border": (120, 125, 135),
-        "hover_fill": (50, 55, 68),
-        "hover_border": (180, 185, 195),
+        "fill": (180, 172, 155),
+        "border": (145, 138, 122),
+        "text": (40, 35, 30),
+        "hover_fill": (220, 212, 195),
+        "hover_border": (180, 172, 155),
+        "hover_text": (25, 22, 18),
     },
     "danger": {
-        "fill": (30, 33, 42),
-        "border": (120, 125, 135),
-        "hover_fill": (55, 60, 75),
-        "hover_border": (220, 225, 235),
+        "fill": (180, 172, 155),
+        "border": (145, 138, 122),
+        "text": (40, 35, 30),
+        "hover_fill": (220, 212, 195),
+        "hover_border": (180, 172, 155),
+        "hover_text": (25, 22, 18),
     },
 }
 
@@ -179,7 +184,7 @@ class Button:
             fill_color=colors["hover_fill"],
             border_color=colors["hover_border"],
         )
-        self.label = Label(text, font_size)
+        self.label = Label(text, font_size, color=colors.get("text", (255, 255, 255)))
         self.hover_label = Label(text, font_size, color=colors.get("hover_text", (255, 255, 255)))
         self.rect = pygame.Rect(0, 0, width, height)
         self.hovered = False
@@ -213,12 +218,14 @@ class Slider:
         value: float = 0.5,
         style: int = 6,
     ) -> None:
-        self.panel = Panel(width, height, style, transparent=True)
+        self.panel = Panel(
+            width, height, style, fill_color=(180, 172, 155), border_color=(145, 138, 122)
+        )
         self.rect = pygame.Rect(0, 0, width, height)
         self.value = value
         self.dragging = False
         self.on_change: callable = lambda v: None
-        self.value_label = Label(f"{int(value * 100)}%", size=14)
+        self.value_label = Label(f"{int(value * 100)}%", size=18)
 
     def set_position(self, x: int, y: int) -> None:
         self.rect.center = (x, y)
@@ -249,10 +256,10 @@ class Slider:
         inner_w = self.rect.width - 2 * margin
         fill_w = int(inner_w * self.value)
         fill_rect = pygame.Rect(inner_x, self.rect.centery - 4, fill_w, 8)
-        pygame.draw.rect(surface, (180, 180, 200), fill_rect, border_radius=3)
+        pygame.draw.rect(surface, (120, 110, 90), fill_rect, border_radius=3)
 
         knob_x = inner_x + fill_w
-        pygame.draw.circle(surface, (255, 255, 255), (knob_x, self.rect.centery), 8)
+        pygame.draw.circle(surface, (60, 55, 45), (knob_x, self.rect.centery), 8)
 
         self.value_label.draw(surface, self.rect.right + 30, self.rect.centery)
 
@@ -265,7 +272,9 @@ class Toggle:
         active: bool = False,
         style: int = 6,
     ) -> None:
-        self.panel = Panel(width, height, style, transparent=True)
+        self.panel = Panel(
+            width, height, style, fill_color=(180, 172, 155), border_color=(145, 138, 122)
+        )
         self.rect = pygame.Rect(0, 0, width, height)
         self.active = active
         self.on_change: callable = lambda v: None
@@ -290,10 +299,62 @@ class Toggle:
         knob_h = self.rect.height - margin * 2
         if self.active:
             knob_x = self.rect.x + self.rect.width - margin - knob_w
-            color = (120, 200, 120)
+            color = (80, 140, 80)
         else:
             knob_x = self.rect.x + margin
-            color = (100, 100, 100)
+            color = (90, 82, 70)
 
         knob_rect = pygame.Rect(knob_x, self.rect.y + margin, knob_w, knob_h)
         pygame.draw.rect(surface, color, knob_rect, border_radius=4)
+
+
+class TextInput:
+    def __init__(
+        self,
+        width: int = 260,
+        height: int = 50,
+        placeholder: str = "",
+        max_length: int = 20,
+        font_size: int = 18,
+        style: int = 6,
+    ) -> None:
+        self.panel = Panel(
+            width, height, style, fill_color=(25, 28, 38), border_color=(120, 125, 135)
+        )
+        self.active_panel = Panel(
+            width, height, style, fill_color=(35, 38, 50), border_color=(200, 205, 215)
+        )
+        self.rect = pygame.Rect(0, 0, width, height)
+        self.text = ""
+        self.placeholder = placeholder
+        self.max_length = max_length
+        self.active = False
+        self.font = pygame.font.Font(FONT_PATH, font_size)
+        self.placeholder_color = (80, 85, 95)
+        self.text_color = (255, 255, 255)
+
+    def set_position(self, x: int, y: int) -> None:
+        self.rect.center = (x, y)
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self.active = self.rect.collidepoint(event.pos)
+        elif event.type == pygame.KEYDOWN and self.active:
+            if event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            elif event.key in (pygame.K_RETURN, pygame.K_TAB):
+                self.active = False
+            elif len(self.text) < self.max_length and event.unicode.isprintable() and event.unicode:
+                self.text += event.unicode
+
+    def draw(self, surface: pygame.Surface) -> None:
+        panel = self.active_panel if self.active else self.panel
+        panel.draw(surface, self.rect.x, self.rect.y)
+
+        if self.text:
+            rendered = self.font.render(self.text, True, self.text_color)
+        else:
+            rendered = self.font.render(self.placeholder, True, self.placeholder_color)
+
+        text_rect = rendered.get_rect(midleft=(self.rect.x + 14, self.rect.centery))
+        surface.blit(rendered, text_rect)

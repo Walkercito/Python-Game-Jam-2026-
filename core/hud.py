@@ -49,7 +49,7 @@ class ZoneAnnouncement:
 
         temp = pygame.Surface((sw, sh), pygame.SRCALPHA)
 
-        gap = self.subtitle_w // 2 + 70
+        gap = self.subtitle_w // 2 + 100
         self.div_left.draw(temp, cx - gap, y)
         self.subtitle_label.draw(temp, cx, y)
         self.div_right.draw(temp, cx + gap, y)

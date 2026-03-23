@@ -9,20 +9,20 @@ class Pause(Scene):
     def __init__(self, manager: SceneManager) -> None:
         super().__init__(manager)
 
-        self.title = Label("Paused", size=30)
-        self.divider_left = Divider(scale=0.6, style=3, fade=True)
-        self.divider_right = Divider(scale=0.6, style=3, fade=True)
+        self.title = Label("Paused", size=42)
+        self.divider_left = Divider(scale=0.55, style=3, fade=True)
+        self.divider_right = Divider(scale=0.55, style=3, fade=True)
         self.divider_right.image = pygame.transform.flip(self.divider_right.image, True, False)
 
-        self.resume_btn = Button("Resume", width=230, height=54, font_size=22, variant="primary")
+        self.resume_btn = Button("Resume", width=300, height=66, font_size=28, variant="primary")
         self.resume_btn.callback = self._on_resume
 
         self.settings_btn = Button(
-            "Settings", width=200, height=48, font_size=20, variant="secondary"
+            "Settings", width=260, height=58, font_size=24, variant="secondary"
         )
         self.settings_btn.callback = self._on_settings
 
-        self.quit_btn = Button("Quit to Menu", width=200, height=48, font_size=18, variant="danger")
+        self.quit_btn = Button("Quit to Menu", width=260, height=58, font_size=22, variant="danger")
         self.quit_btn.callback = self._on_quit
 
         self.buttons = [self.resume_btn, self.settings_btn, self.quit_btn]
@@ -32,13 +32,15 @@ class Pause(Scene):
         cx = sw // 2
         cy = sh // 2
 
-        self.bg_panel = Panel(380, 340, style=6, transparent=True)
-        self.bg_x = (sw - 380) // 2
-        self.bg_y = cy - 170
+        self.bg_panel = Panel(
+            460, 400, style=6, transparent=True, fill_color=(14, 7, 27), border_color=(80, 75, 65)
+        )
+        self.bg_x = (sw - 460) // 2
+        self.bg_y = cy - 200
 
         self.resume_btn.set_position(cx, cy - 30)
-        self.settings_btn.set_position(cx, cy + 40)
-        self.quit_btn.set_position(cx, cy + 110)
+        self.settings_btn.set_position(cx, cy + 55)
+        self.quit_btn.set_position(cx, cy + 135)
 
     def on_resize(self, width: int, height: int) -> None:
         self._layout(width, height)
@@ -57,6 +59,14 @@ class Pause(Scene):
         self.manager.stack.clear()
         self.manager.push(MainMenu(self.manager))
 
+    def update(self, dt: float) -> None:
+        from core.scenes.network_gameplay import NetworkGameplay
+
+        for scene in self.manager.stack:
+            if isinstance(scene, NetworkGameplay):
+                scene.update(dt)
+                break
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self._on_resume()
@@ -67,11 +77,11 @@ class Pause(Scene):
     def draw(self, surface: pygame.Surface) -> None:
         sw, sh = surface.get_size()
         overlay = pygame.Surface((sw, sh), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))
+        overlay.fill((0, 0, 0, 160))
         surface.blit(overlay, (0, 0))
 
         cx = sw // 2
-        title_y = self.bg_y + 50
+        title_y = self.bg_y + 60
 
         self.bg_panel.draw(surface, self.bg_x, self.bg_y)
         title_gap = self.title.rect.width // 2 + 70
