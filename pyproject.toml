@@ -19,6 +19,7 @@ dependencies = [
     "pillow>=11.0",
     "pygame-ce>=2.5.7",
     "pytmx>=3.32",
+    "repodnet>=0.1.2",
 ]
 
 [dependency-groups]
@@ -52,6 +53,9 @@ ignore = [
     "B008",   # function call in default argument (common in pygame)
     "SIM108", # ternary operator (readability preference)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"core/network.py" = ["N802"]  # Network_* naming required by repod
 
 [tool.ruff.lint.isort]
 known-first-party = ["core"]
