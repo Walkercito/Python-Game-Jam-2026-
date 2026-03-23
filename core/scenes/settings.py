@@ -1,8 +1,26 @@
+from pathlib import Path
+
 import pygame
 
+from core.config.constants import BG_COLOR
 from core.config.game_settings import settings
 from core.gui import Button, Divider, Label, Panel, Slider, Toggle
 from core.scene import Scene, SceneManager
+
+ICON_DIR = Path("assets/gui/icons/HardArtcore/SimpleUIIcons/Icons/Filled")
+TAB_ICON_SIZE = 32
+TAB_NAMES = ["Screen", "Audio", "Gameplay", "Credits"]
+TAB_ICONS = [
+    "ic_video_fill.png",
+    "ic_volume_on_fill.png",
+    "ic_settings_fill.png",
+    "ic_star_fill.png",
+]
+
+
+def _load_icon(name: str, size: int = TAB_ICON_SIZE) -> pygame.Surface:
+    img = pygame.image.load(ICON_DIR / name).convert_alpha()
+    return pygame.transform.scale(img, (size, size))
 
 
 class Settings(Scene):
@@ -14,6 +32,13 @@ class Settings(Scene):
         self.divider_bottom = Divider(scale=0.8, style=3, fade=True)
         self.divider_bottom.image = pygame.transform.flip(self.divider_bottom.image, True, False)
 
+        # Tabs
+        self.tab_icons = [_load_icon(name) for name in TAB_ICONS]
+        self.tab_labels = [Label(name, size=14, color=(160, 155, 140)) for name in TAB_NAMES]
+        self.active_tab = 0
+        self.tab_rects: list[pygame.Rect] = []
+
+        # Screen tab
         self.fullscreen_label = Label("Fullscreen", size=24)
         self.fullscreen_toggle = Toggle(width=80, height=42, active=settings.is_fullscreen, style=6)
         self.fullscreen_toggle.on_change = self._on_fullscreen
@@ -29,6 +54,11 @@ class Settings(Scene):
         self.res_right = Button(">", width=46, height=46, font_size=22, variant="secondary")
         self.res_right.callback = self._next_res
 
+        self.fps_label = Label("Show FPS", size=24)
+        self.fps_toggle = Toggle(width=80, height=42, active=settings.show_fps, style=6)
+        self.fps_toggle.on_change = self._on_fps
+
+        # Audio tab
         self.music_label = Label("Music", size=24)
         self.music_slider = Slider(width=240, height=42, value=settings.music_volume, style=6)
         self.music_slider.on_change = self._on_music
@@ -37,48 +67,71 @@ class Settings(Scene):
         self.sfx_slider = Slider(width=240, height=42, value=settings.sfx_volume, style=6)
         self.sfx_slider.on_change = self._on_sfx
 
-        self.fps_label = Label("Show FPS", size=24)
-        self.fps_toggle = Toggle(width=80, height=42, active=settings.show_fps, style=6)
-        self.fps_toggle.on_change = self._on_fps
+        # Gameplay tab (placeholder)
+        self.gameplay_placeholder = Label("Coming soon...", size=22, color=(120, 115, 100))
+
+        # Credits tab (placeholder)
+        self.credits_placeholder = Label("Coming soon...", size=22, color=(120, 115, 100))
 
         self.back_btn = Button("Back", width=240, height=58, font_size=24, variant="secondary")
         self.back_btn.callback = self._on_back
 
-        self.widgets = [
-            self.fullscreen_toggle,
-            self.res_left,
-            self.res_right,
-            self.music_slider,
-            self.sfx_slider,
-            self.fps_toggle,
-            self.back_btn,
-        ]
-
+        self._build_tab_widgets()
         self._layout(*settings.screen_size)
+
+    def _build_tab_widgets(self) -> None:
+        tab_widgets = {
+            0: [self.fullscreen_toggle, self.res_left, self.res_right, self.fps_toggle],
+            1: [self.music_slider, self.sfx_slider],
+            2: [],
+            3: [],
+        }
+        self._tab_widgets = tab_widgets
+        self._update_active_widgets()
+
+    def _update_active_widgets(self) -> None:
+        self.widgets = [*self._tab_widgets.get(self.active_tab, []), self.back_btn]
 
     def _layout(self, sw: int, sh: int) -> None:
         cx = sw // 2
         cy = sh // 2
 
         self.bg_panel = Panel(
-            620, 590, style=6, transparent=True, fill_color=(14, 7, 27), border_color=(80, 75, 65)
+            680, 600, style=6, transparent=True, fill_color=BG_COLOR, border_color=(80, 75, 65)
         )
-        self.bg_x = (sw - 620) // 2
-        self.bg_y = cy - 295
+        self.bg_x = (sw - 680) // 2
+        self.bg_y = cy - 300
 
-        label_x = cx - 140
-        control_x = cx + 120
+        # Tab buttons — horizontal row below title
+        tab_y = self.bg_y + 110
+        tab_total_w = len(TAB_NAMES) * 130
+        tab_start_x = cx - tab_total_w // 2
 
-        self.fullscreen_toggle.set_position(control_x, self.bg_y + 160)
-        self.res_left.set_position(control_x - 80, self.bg_y + 235)
-        self.res_right.set_position(control_x + 80, self.bg_y + 235)
-        self.music_slider.set_position(control_x, self.bg_y + 315)
-        self.sfx_slider.set_position(control_x, self.bg_y + 395)
-        self.fps_toggle.set_position(control_x, self.bg_y + 470)
-        self.back_btn.set_position(cx, self.bg_y + 550)
+        self.tab_rects = []
+        for i in range(len(TAB_NAMES)):
+            tx = tab_start_x + i * 130
+            self.tab_rects.append(pygame.Rect(tx, tab_y, 120, 55))
+
+        # Content area starts below tabs
+        content_y = self.bg_y + 200
+        label_x = cx - 160
+        control_x = cx + 130
+
+        # Screen tab positions
+        self.fullscreen_toggle.set_position(control_x, content_y)
+        self.res_left.set_position(control_x - 90, content_y + 85)
+        self.res_right.set_position(control_x + 90, content_y + 85)
+        self.fps_toggle.set_position(control_x, content_y + 170)
+
+        # Audio tab positions
+        self.music_slider.set_position(control_x, content_y + 30)
+        self.sfx_slider.set_position(control_x, content_y + 120)
+
+        self.back_btn.set_position(cx, self.bg_y + 555)
 
         self._label_x = label_x
         self._control_x = control_x
+        self._content_y = content_y
 
     def on_resize(self, width: int, height: int) -> None:
         self._layout(width, height)
@@ -96,9 +149,9 @@ class Settings(Scene):
         self._apply_resolution()
 
     def _apply_resolution(self) -> None:
-        w, h = self.resolutions[self.res_index]
         self.res_value.set_text(self._res_text())
         if not settings.is_fullscreen:
+            w, h = self.resolutions[self.res_index]
             settings.screen_width = w
             settings.screen_height = h
             settings.apply_display_mode()
@@ -135,8 +188,65 @@ class Settings(Scene):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self._on_back()
             return
+
+        # Tab clicks
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for i, rect in enumerate(self.tab_rects):
+                if rect.collidepoint(event.pos):
+                    self.active_tab = i
+                    self._update_active_widgets()
+                    return
+
         for widget in self.widgets:
             widget.handle_event(event)
+
+    def _draw_tabs(self, surface: pygame.Surface, cx: int) -> None:
+        for i, rect in enumerate(self.tab_rects):
+            is_active = i == self.active_tab
+
+            # Tab background
+            color = (60, 55, 48) if is_active else (35, 32, 28)
+            border = (160, 155, 140) if is_active else (80, 75, 65)
+            tab_panel = Panel(
+                rect.width, rect.height, style=6, fill_color=color, border_color=border
+            )
+            tab_panel.draw(surface, rect.x, rect.y)
+
+            # Icon
+            icon = self.tab_icons[i]
+            icon_x = rect.centerx - TAB_ICON_SIZE // 2
+            icon_y = rect.y + 5
+            surface.blit(icon, (icon_x, icon_y))
+
+            # Label
+            self.tab_labels[i].draw(surface, rect.centerx, rect.bottom - 8)
+
+    def _draw_screen_tab(self, surface: pygame.Surface) -> None:
+        y = self._content_y
+        self.fullscreen_label.draw(surface, self._label_x, y)
+        self.fullscreen_toggle.draw(surface)
+
+        self.res_label.draw(surface, self._label_x, y + 85)
+        self.res_left.draw(surface)
+        self.res_value.draw(surface, self._control_x, y + 85)
+        self.res_right.draw(surface)
+
+        self.fps_label.draw(surface, self._label_x, y + 170)
+        self.fps_toggle.draw(surface)
+
+    def _draw_audio_tab(self, surface: pygame.Surface) -> None:
+        y = self._content_y + 30
+        self.music_label.draw(surface, self._label_x, y)
+        self.music_slider.draw(surface)
+
+        self.sfx_label.draw(surface, self._label_x, y + 90)
+        self.sfx_slider.draw(surface)
+
+    def _draw_gameplay_tab(self, surface: pygame.Surface, cx: int, cy: int) -> None:
+        self.gameplay_placeholder.draw(surface, cx, cy)
+
+    def _draw_credits_tab(self, surface: pygame.Surface, cx: int, cy: int) -> None:
+        self.credits_placeholder.draw(surface, cx, cy)
 
     def draw(self, surface: pygame.Surface) -> None:
         sw, sh = surface.get_size()
@@ -145,7 +255,7 @@ class Settings(Scene):
         surface.blit(overlay, (0, 0))
 
         cx = sw // 2
-        title_y = self.bg_y + 65
+        title_y = self.bg_y + 55
 
         self.bg_panel.draw(surface, self.bg_x, self.bg_y)
         title_gap = self.title.rect.width // 2 + 110
@@ -153,21 +263,16 @@ class Settings(Scene):
         self.title.draw(surface, cx, title_y)
         self.divider_bottom.draw(surface, cx + title_gap, title_y)
 
-        self.fullscreen_label.draw(surface, self._label_x, self.bg_y + 160)
-        self.fullscreen_toggle.draw(surface)
+        self._draw_tabs(surface, cx)
 
-        self.res_label.draw(surface, self._label_x, self.bg_y + 235)
-        self.res_left.draw(surface)
-        self.res_value.draw(surface, self._control_x, self.bg_y + 235)
-        self.res_right.draw(surface)
-
-        self.music_label.draw(surface, self._label_x, self.bg_y + 315)
-        self.music_slider.draw(surface)
-
-        self.sfx_label.draw(surface, self._label_x, self.bg_y + 395)
-        self.sfx_slider.draw(surface)
-
-        self.fps_label.draw(surface, self._label_x, self.bg_y + 470)
-        self.fps_toggle.draw(surface)
+        content_cy = self._content_y + 100
+        if self.active_tab == 0:
+            self._draw_screen_tab(surface)
+        elif self.active_tab == 1:
+            self._draw_audio_tab(surface)
+        elif self.active_tab == 2:
+            self._draw_gameplay_tab(surface, cx, content_cy)
+        elif self.active_tab == 3:
+            self._draw_credits_tab(surface, cx, content_cy)
 
         self.back_btn.draw(surface)

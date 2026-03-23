@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pygame
 
 from core.config.constants import FPS, TITLE
@@ -5,6 +7,9 @@ from core.config.game_settings import settings
 from core.gui import FONT_PATH
 from core.scene import SceneManager
 from core.scenes.main_menu import MainMenu
+
+CURSOR_PATH = Path("assets/gui/icons/HardArtcore/SimpleUIIcons/Icons/Filled/ic_cursor_fill.png")
+CURSOR_SIZE = 24
 
 
 class Engine:
@@ -19,6 +24,11 @@ class Engine:
         self.scene_manager.push(MainMenu(self.scene_manager))
         settings.consume_dirty()
         self._fps_font = pygame.font.Font(FONT_PATH, 14)
+
+        # Custom cursor
+        cursor_img = pygame.image.load(CURSOR_PATH).convert_alpha()
+        self._cursor = pygame.transform.scale(cursor_img, (CURSOR_SIZE, CURSOR_SIZE))
+        pygame.mouse.set_visible(False)
 
     def run(self) -> None:
         while self.running:
@@ -42,6 +52,10 @@ class Engine:
                     f"{self.clock.get_fps():.0f} FPS", True, (200, 200, 200)
                 )
                 self.screen.blit(fps_text, (8, 8))
+
+            # Custom cursor — drawn last, always on top
+            mx, my = pygame.mouse.get_pos()
+            self.screen.blit(self._cursor, (mx, my))
 
             pygame.display.flip()
             self.clock.tick(FPS)
