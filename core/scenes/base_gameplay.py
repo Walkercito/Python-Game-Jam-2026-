@@ -34,6 +34,7 @@ from core.player import Player
 from core.portal import Portal
 from core.resource import resource_path
 from core.scene import Scene, SceneManager
+from core.tutorial import TutorialManager
 from core.vfx import VFXAnimation, load_vfx_frames
 
 
@@ -71,6 +72,11 @@ class BaseGameplay(Scene):
         self._portal_activated = False
         self._lava_timers = [0.0, 0.0]
         self._death_flash = [0.0, 0.0]
+
+        # Tutorial (action-based, per-player)
+        self.tutorial: TutorialManager | None = None
+        if level.get("tutorial"):
+            self.tutorial = TutorialManager(level.get("tutorial"))
 
     def _sync_player_scales(self) -> None:
         new_scale = PLAYER_SCALE * (self.map.scale / BASE_MAP_SCALE)
@@ -198,6 +204,10 @@ class BaseGameplay(Scene):
                 self.sign_dialogs[i].hide()
             self.sign_dialogs[i].update(dt)
 
+        # Tutorial (action-based, per-player)
+        if self.tutorial and len(self.players) >= 2:
+            self.tutorial.update(dt, self.players[0], self.players[1])
+
     def _on_level_complete(self) -> None:
         """Override in subclass for level transition behavior."""
         from core.scenes.main_menu import MainMenu
@@ -224,6 +234,11 @@ class BaseGameplay(Scene):
             p.draw(surface, cam_offset, show_nametag=self._show_nametag(i))
         for vfx in self.vfx_list:
             vfx.draw(surface, cam_offset)
+        if self.tutorial:
+            for i, p in enumerate(self.players):
+                if self.portal and self.portal.should_hide_player(i):
+                    continue
+                self.tutorial.draw_for_player(surface, i, p.rect, cam_offset)
 
     def _should_draw_player(self, index: int) -> bool:
         return True

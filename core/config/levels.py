@@ -4,10 +4,16 @@ LEVELS: dict[str, dict] = {
         "zone_subtitle": "Zone One",
         "zone_title": "Tutorial Valley",
         "signs": {
-            0: "Try pressing W to jump!",
+            0: "Stand on both plates to open the portal!",
         },
         "next_level": "level_001",
-        "zoom": None,  # auto-fit to screen
+        "zoom": None,
+        "tutorial": [
+            {"keys": ["A", "D"], "text": "Move", "action": "move"},
+            {"keys": ["W"], "text": "Jump", "action": "jump"},
+            {"keys": ["W", "W"], "text": "Double jump at the peak!", "action": "double_jump"},
+            {"keys": ["S"], "text": "Fast fall", "action": "fast_fall"},
+        ],
     },
     "level_001": {
         "map": "assets/tiled/level_001.tmx",
