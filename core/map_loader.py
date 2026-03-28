@@ -72,7 +72,7 @@ class TMXMap:
         self.rescale(target_size or settings.screen_size)
 
     def _parse_layers(self) -> None:
-        for layer in self.tmx_data.visible_layers:
+        for layer in self.tmx_data.layers:
             if not isinstance(layer, pytmx.TiledTileLayer):
                 continue
             properties = LAYER_PROPERTIES.get(layer.name, {})
@@ -89,6 +89,8 @@ class TMXMap:
             "MovingPlatformsPoints",
             "SpawnA",
             "SpawnB",
+            "Jump",
+            "Limit",
         }
     )
 
@@ -197,6 +199,14 @@ class TMXMap:
     @property
     def moving_platform_points(self) -> list[pygame.Rect]:
         return self._layer_rects("MovingPlatformsPoints")
+
+    @property
+    def jump_rects(self) -> list[pygame.Rect]:
+        return self._layer_rects("Jump")
+
+    @property
+    def limit_rects(self) -> list[pygame.Rect]:
+        return self._layer_rects("Limit")
 
     @property
     def second_door_pressure_rects(self) -> list[pygame.Rect]:
