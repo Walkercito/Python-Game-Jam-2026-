@@ -27,10 +27,10 @@ class MainMenu(Scene):
         try:
             ver = pkg_version("python-game-jam-2026")
         except Exception:
-            ver = "0.1.1"
+            ver = "0.1.2"
 
-        self.version_label = Label(f"v{ver}", size=14, color=(100, 95, 85))
-        self.credit_label = Label("Made with <3 by Walkercito", size=14, color=(100, 95, 85))
+        self.version_label = Label(f"v{ver}", size=18, color=(100, 95, 85))
+        self.credit_label = Label("Made with <3 by Walkercito", size=18, color=(100, 95, 85))
 
         self.title = Label(TITLE, size=64)
         self.title_div_l = Divider(scale=1.2, style=3, fade=True)
