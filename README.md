@@ -26,6 +26,8 @@
 - **Narrated intro** with cinematic typewriter text
 - **Multiple levels** with progressive mechanics
 
+Notice: The game is unfinished. It was supposed to have a level 3 and a final level, but it doesn’t even have level 2 complete. I had time, I just didn’t have the creativity to continue and felt too stressed with work. I hope you enjoy what was done.
+
 ---
 
 ## How to Play
@@ -64,7 +66,7 @@ Controls are customizable in Settings. Players can swap between WASD, Numpad, an
 
 ```bash
 git clone https://github.com/Walkercito/Python-Game-Jam-2026.git
-cd Python-Game-Jam-2026-
+cd Python-Game-Jam-2026
 ```
 
 **With uv:**
